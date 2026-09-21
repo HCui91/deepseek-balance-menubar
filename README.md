@@ -9,7 +9,7 @@ Native Swift/AppKit. No Python, no runtime dependencies. Calls
 
 - macOS 11+
 - Swift toolchain (`xcode-select --install`)
-- ImageMagick (`brew install imagemagick`) — optional, only to regenerate the icon
+- ImageMagick (`brew install imagemagick`) — optional, only to build an icon from your own `.ico`
 
 ## Build & run
 
@@ -51,15 +51,22 @@ security delete-generic-password -s dev.deepseek.balance -a deepseek_api_key
 | Delete Saved API Key | Remove the key from Keychain |
 | Quit | Quit (⌘Q) |
 
-The menu bar shows `🐳 ¥5.96` — icon plus balance. With multiple currency
-accounts, the largest balance is shown.
+The menu bar shows the balance (`¥5.96`), optionally preceded by an icon.
+With multiple currency accounts, the largest balance is shown.
 
-## Icon
+## Icon (optional, not included)
 
-`build_app.sh` trims `deepseek.ico` and generates transparent PNGs
-(`assets/icon.png`, `assets/icon@2x.png`) bundled into `Contents/Resources`.
+This repository does **not** include the DeepSeek logo: it is a trademark of
+DeepSeek and is not covered by this project's license.
 
-Tune size/gap at the top of `build_app.sh`:
+To show an icon in the menu bar, provide your own:
+
+- `deepseek.ico` in the project root (converted by `build_app.sh` with ImageMagick), or
+- `assets/icon.png` and `assets/icon@2x.png` (transparent PNGs, used directly)
+
+Without an icon, the menu bar shows the balance as text only.
+
+Tune size/gap at the top of `build_app.sh` (only affects generated icons):
 
 ```bash
 ICON_HEIGHT=15   # icon height (pt)
@@ -81,3 +88,10 @@ osascript -e 'tell application "System Events" to make login item at end with pr
 ./build/DeepSeekBalance --check   # fetch once and print, no GUI
 ./build_app.sh                    # rebuild
 ```
+
+## License
+
+[MIT](LICENSE) — applies to the source code only.
+
+The "DeepSeek" name and logo are trademarks of DeepSeek and are neither
+included in nor licensed by this repository.

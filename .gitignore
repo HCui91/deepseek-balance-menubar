@@ -9,6 +9,11 @@ config.yaml
 *.key
 *.secret
 
+# ---- local / third-party assets (not distributed) ----
+# The DeepSeek logo is a trademark of DeepSeek; not included or licensed here.
+deepseek.ico
+assets/
+
 # ---- macOS ----
 .DS_Store
 ._*
