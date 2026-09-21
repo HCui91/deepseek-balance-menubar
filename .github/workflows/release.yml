@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build .app
+        run: ./build_app.sh
+
+      - name: Package (zip + dmg + checksums)
+        run: |
+          set -euo pipefail
+          cd dist
+
+          # zip (keeps bundle metadata/permissions)
+          ditto -c -k --keepParent DeepSeekBalance.app DeepSeekBalance.zip
+
+          # dmg with drag-to-Applications symlink
+          mkdir -p dmg
+          cp -R DeepSeekBalance.app dmg/
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname "DeepSeek Balance" -srcfolder dmg \
+            -ov -format UDZO DeepSeekBalance.dmg
+          rm -rf dmg
+
+          shasum -a 256 DeepSeekBalance.dmg DeepSeekBalance.zip > SHA256SUMS.txt
+          ls -la
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepSeekBalance
+          path: |
+            dist/DeepSeekBalance.dmg
+            dist/DeepSeekBalance.zip
+            dist/SHA256SUMS.txt
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/DeepSeekBalance.dmg
+            dist/DeepSeekBalance.zip
+            dist/SHA256SUMS.txt
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            1. Download `DeepSeekBalance.dmg` (or `DeepSeekBalance.zip`) and open it.
+            2. Drag **DeepSeekBalance.app** into Applications.
+            3. The app is not notarized, so macOS may block the first launch. Either:
+               - right-click the app → **Open** → **Open**, or
+               - run `xattr -dr com.apple.quarantine /Applications/DeepSeekBalance.app`
+            4. Click the menu bar icon → **Set API Key…** and paste your key.
+               It is stored in the macOS Keychain; no config file is used.
+
+            Verify the download with `SHA256SUMS.txt`.
