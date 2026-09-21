@@ -12,6 +12,7 @@ BIN_NAME="${APP_NAME}"
 # Menu bar icon size and gap (in points). Adjust as needed.
 ICON_HEIGHT=15   # icon height
 ICON_GAP=1       # gap between icon and balance text
+MACOS_MIN=11.0   # minimum macOS version for the built binary
 
 # 0. Generate the menu bar icon (transparent PNG, ICON_GAP reserved on the
 #    right, with @2x retina variant).
@@ -26,10 +27,16 @@ if [ -f deepseek.ico ] && command -v magick >/dev/null 2>&1; then
   echo "==> icons generated: ${ICON_HEIGHT}pt tall, ${ICON_GAP}px gap (icon.png ${W1}x${ICON_HEIGHT} + gap, icon@2x.png ${W2}x$((ICON_HEIGHT*2)) + gap)"
 fi
 
-# 1. Compile
+# 1. Compile (universal arm64 + x86_64, pinned deployment target so the
+#    binary runs on older macOS than the CI runner's SDK)
 mkdir -p "$BUILD_DIR"
-echo "==> compiling with swiftc…"
-swiftc -O -o "$BUILD_DIR/$BIN_NAME" DeepSeekBalance.swift
+echo "==> compiling with swiftc (macOS ${MACOS_MIN}+)…"
+swiftc -O -target "arm64-apple-macosx${MACOS_MIN}"  -o "$BUILD_DIR/${BIN_NAME}-arm64"  DeepSeekBalance.swift
+swiftc -O -target "x86_64-apple-macosx${MACOS_MIN}" -o "$BUILD_DIR/${BIN_NAME}-x86_64" DeepSeekBalance.swift
+lipo -create -output "$BUILD_DIR/$BIN_NAME" \
+  "$BUILD_DIR/${BIN_NAME}-arm64" "$BUILD_DIR/${BIN_NAME}-x86_64"
+rm -f "$BUILD_DIR/${BIN_NAME}-arm64" "$BUILD_DIR/${BIN_NAME}-x86_64"
+lipo -info "$BUILD_DIR/$BIN_NAME"
 
 # 2. Bundle the .app
 rm -rf "$DIST_DIR"
