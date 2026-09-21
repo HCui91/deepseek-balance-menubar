@@ -1,0 +1,21 @@
+# ---- build artifacts ----
+build/
+dist/
+*.app
+
+# ---- local config / secrets (never commit) ----
+config.yaml
+.env
+*.key
+*.secret
+
+# ---- macOS ----
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# ---- editors ----
+.vscode/
+.idea/
+*.swp
